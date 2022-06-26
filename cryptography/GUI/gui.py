@@ -219,11 +219,12 @@ class MyTableWidget(QWidget):
         self.buttonChecksum   = QPushButton("Choose File", self)
         self.buttonGenerate   = QPushButton("Generate", self)
         self.buttonVerify     = QPushButton("Verify", self)
-
+        self.labelPlainFile   = QLabel("", self)
+        self.labelChecksumFile= QLabel("", self)
+        self.labelStatus      = QLabel("", self)
 
         self.comboMD5Mode.addItem("Generate")
         self.comboMD5Mode.addItem("Verify") 
-        self.comboMD5Mode.adjustSize()
         
         self.layoutMD5Button = QVBoxLayout()
         self.layoutMD5Button.setContentsMargins(LEFT, 0, RIGHT, 0)
@@ -267,42 +268,40 @@ class MyTableWidget(QWidget):
 
         # Appplication part
         self.layoutChecksumText = QHBoxLayout()
-        self.layoutChecksumText.setSpacing(10)
-        self.layoutChecksumText.setContentsMargins(0, TOP, 0, BOTTOM)
-        self.layoutChecksumText.addStretch()
-        self.layoutChecksumText.addWidget(self.comboMD5Mode)
-        self.layoutChecksumText.addWidget(self.labelChecksum)
-        self.layoutChecksumText.addStretch()
+        self.layoutChecksumText.setSpacing(50)
+        self.layoutChecksumText.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutChecksumText.addWidget(QLabel("File to Hash:", self) )
+
+        self.layoutGenOrVerify = QHBoxLayout()
+        self.layoutGenOrVerify.setSpacing(10)
+        self.layoutGenOrVerify.addWidget(self.comboMD5Mode)
+        self.layoutGenOrVerify.addWidget(self.labelChecksum)
+        self.layoutGenOrVerify.setAlignment(Qt.AlignCenter)
+
+        self.layoutChecksumText.addLayout(self.layoutGenOrVerify)
+        self.layoutChecksumText.addWidget(QLabel("Checksum:" , self) ) 
         
         self.layoutFile = QVBoxLayout()
-
-        self.fileLabel = QLabel(self)
-        self.fpixmap = QPixmap('attributes/file_not_added.png')
-        self.fileLabel.setPixmap(self.fpixmap)
-        self.fileLabel.resize(self.fpixmap.width(), self.fpixmap.height() )
-
-        self.layoutFile.addWidget(QLabel("File to Hash:" , self) )
-        self.layoutFile.addWidget(self.fileLabel)
+        self.layoutFile.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutFile.addWidget(self.labelPlainFile)
         self.layoutFile.addWidget(self.buttonFile)
         
         self.layoutChecksumButton = QVBoxLayout()
         self.layoutChecksumButton.setSpacing(20)
-        self.layoutChecksumButton.addStretch()
-
+        self.layoutChecksumButton.setContentsMargins(LEFT * 3, TOP, RIGHT * 3, BOTTOM)
+        self.buttonGenerate.setFixedWidth(120)
         self.layoutChecksumButton.addWidget(self.buttonGenerate)
+        self.buttonVerify.setFixedWidth(120)
         self.layoutChecksumButton.addWidget(self.buttonVerify)
-        self.buttonVerify.setEnabled(False)
-        self.layoutChecksumButton.addStretch()
-        
-        self.layoutChecksum = QVBoxLayout()
-        
-        self.checksumLabel = QLabel(self)
-        self.cpixmap = QPixmap('attributes/file_not_added.png')
-        self.checksumLabel.setPixmap(self.cpixmap)
-        self.checksumLabel.resize(self.cpixmap.width(), self.cpixmap.height() )
+        self.layoutChecksumButton.addWidget(self.labelStatus)
 
-        self.layoutChecksum.addWidget(QLabel("Checksum:", self) )
-        self.layoutChecksum.addWidget(self.checksumLabel)
+        self.layoutChecksumButton.setAlignment(Qt.AlignCenter)
+        # By default in Generate Checksum
+        self.buttonVerify.setEnabled(False)
+        
+        self.layoutChecksum = QVBoxLayout()       
+        self.layoutChecksum.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutChecksum.addWidget(self.labelChecksumFile)
         self.layoutChecksum.addWidget(self.buttonChecksum)
         
         self.layoutMD5Application = QHBoxLayout()
