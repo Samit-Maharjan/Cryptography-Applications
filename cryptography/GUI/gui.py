@@ -209,7 +209,7 @@ class MyTableWidget(QWidget):
         self.applicationDES.setFixedWidth(320)
         self.applicationDES.setAlignment(Qt.AlignCenter)
 
-        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM)
+        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
         self.applicationDES.setStyleSheet("font-weight: bold;")
         
         self.layoutSeparator.addWidget(self.separatorL)
@@ -273,10 +273,10 @@ class MyTableWidget(QWidget):
         self.textDESKey.setFixedHeight(TEXT_HEIGHT) 
         self.textDESInitVec.setFixedHeight(TEXT_HEIGHT)
         
-        # self.buttonDESEncrypt.clicked.connect(self._DESEncrypt)
-        # self.buttonDESDecrypt.clicked.connect(self._DESDecrypt)
-        # self.buttonDESEncryptFile.clicked.connect(self._DESEncryptFile)
-        # self.buttonDESDecryptFile.clicked.connect(self._DESDecryptFile)
+        self.buttonDESEncrypt.clicked.connect(self._DESEncrypt)
+        self.buttonDESDecrypt.clicked.connect(self._DESDecrypt)
+        self.buttonDESEncryptFile.clicked.connect(self._DESEncryptFile)
+        self.buttonDESDecryptFile.clicked.connect(self._DESDecryptFile)
         
         # Create MD5 tab
         
