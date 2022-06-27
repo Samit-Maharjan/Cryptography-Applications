@@ -5,7 +5,7 @@ from ..DES import file_encryptor
 from ..MD5 import cryptography_md5
 from ..RSA import cryptography_rsa
 from ..AES import aes
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QComboBox, QApplication, QTextEdit, QFileDialog, QMainWindow, QApplication, QVBoxLayout, QTabWidget, QHBoxLayout, QSpacerItem, QMessageBox, QGridLayout, QFrame, QSizePolicy 
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QComboBox, QApplication, QTextEdit, QFileDialog, QMainWindow, QApplication, QVBoxLayout, QTabWidget, QHBoxLayout, QSpacerItem, QMessageBox, QGridLayout, QFrame, QSizePolicy, QFormLayout
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 
@@ -128,7 +128,7 @@ class MyTableWidget(QWidget):
         
         # Create DES tab
         
-        self.labelDESKey          = QLabel("Key:",self)
+        self.labelDESKey          = QLabel("  Key:",self)
         self.labelDESPlain        = QLabel("Plain Text:",self)
         self.labelDESCypher       = QLabel("Cipher Text:",self)
         self.labelDESInitVec      = QLabel("Initial vector:",self)
@@ -137,13 +137,13 @@ class MyTableWidget(QWidget):
         self.labelInputFile       = QLabel("", self)
         self.labelOutputFile      = QLabel("", self)
         self.applicationDES       = QLabel("File Encryption/ Decryption", self)
-        
+        self.labelStatus          = QLabel("", self)   
+
         self.buttonDESEncrypt     = QPushButton("Encrypt",self)
         self.buttonDESDecrypt     = QPushButton("Decrypt",self)
         self.buttonDESEncryptFile = QPushButton("Encrypt File",self)
         self.buttonDESDecryptFile = QPushButton("Decrypt File",self)
         self.buttonInput          = QPushButton("Choose File", self)
-        self.buttonOutput         = QPushButton("Choose File", self)
 
         self.textDESPlain         = QTextEdit(self)
         self.textDESCypher        = QTextEdit(self)
@@ -159,42 +159,37 @@ class MyTableWidget(QWidget):
         
         self.comboDES.addItem("Encrypt")
         self.comboDES.addItem("Decrypt")
-
-        self.layoutDESKeyKey = QHBoxLayout()
-        self.layoutDESKeyKey.addWidget(self.comboDESMode)
-        self.layoutDESKeyKey.addWidget(self.labelDESKey)
-        self.layoutDESKeyKey.addWidget(self.textDESKey)
         
+        self.layoutDESKeyMode = QHBoxLayout()
+        self.layoutDESKeyMode.addWidget(self.comboDESMode)
+        self.layoutDESKeyMode.addWidget(self.labelDESKey)
+        self.layoutDESKeyMode.addWidget(self.textDESKey)
+
         self.layoutDESInitVec = QHBoxLayout()
         self.layoutDESInitVec.addWidget(self.labelDESInitVec)
         self.layoutDESInitVec.addWidget(self.textDESInitVec)
-        
+
         self.layoutDESKey = QVBoxLayout()
-        self.layoutDESKey.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutDESKey.setContentsMargins(LEFT, 0, RIGHT, BOTTOM)
         self.layoutDESKey.addLayout(self.layoutDESInitVec)
-        self.layoutDESKey.addLayout(self.layoutDESKeyKey)
+        self.layoutDESKey.addLayout(self.layoutDESKeyMode)
 
         self.layoutDESButton = QVBoxLayout()
         self.layoutDESButton.setSpacing(20)
-        self.layoutDESButton.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutDESButton.setContentsMargins(LEFT, TOP * 3, RIGHT, BOTTOM)
         self.layoutDESButton.addStretch()
         self.layoutDESButton.addWidget(self.buttonDESEncrypt)
         self.layoutDESButton.addWidget(self.buttonDESDecrypt)
         self.layoutDESButton.addStretch()
-        
-        # self.layoutDESLeftButtom = QHBoxLayout()
-        # self.layoutDESLeftButtom.addWidget(self.buttonDESEncryptFile)
-        # self.layoutDESLeftButtom.addWidget(self.labelDESPlainFile)
 
+    
         self.layoutDESLeft = QVBoxLayout()
+        self.layoutDESLeft.setContentsMargins(LEFT, 0, RIGHT, BOTTOM - 5)
         self.layoutDESLeft.addWidget(self.labelDESPlain)
         self.layoutDESLeft.addWidget(self.textDESPlain)
         
-        # self.layoutDESRightButtom = QHBoxLayout()
-        # self.layoutDESRightButtom.addWidget(self.buttonDESDecryptFile)
-        # self.layoutDESRightButtom.addWidget(self.labelDESCypherFile)
-
         self.layoutDESRight = QVBoxLayout()
+        self.layoutDESRight.setContentsMargins(LEFT, 0, RIGHT, BOTTOM - 5)
         self.layoutDESRight.addWidget(self.labelDESCypher)
         self.layoutDESRight.addWidget(self.textDESCypher)
         
@@ -243,27 +238,36 @@ class MyTableWidget(QWidget):
         self.layoutFileInput.addWidget(self.labelInputFile)
         self.layoutFileInput.addWidget(self.buttonInput)
 
-
         self.layoutFileButton = QVBoxLayout()
         self.layoutFileButton.setSpacing(20)
+        self.layoutFileButton.setContentsMargins(LEFT, TOP * 2, RIGHT, BOTTOM)
+        self.layoutFileButton.setAlignment(Qt.AlignCenter)
+
+        self.buttonDESEncryptFile.setFixedWidth(160)
         self.layoutFileButton.addWidget(self.buttonDESEncryptFile)
+        self.buttonDESDecryptFile.setFixedWidth(160)
         self.layoutFileButton.addWidget(self.buttonDESDecryptFile)
+
+        self.layoutFileButton.addWidget(self.labelStatus)
+        
+        #By default in Encrypt Mode
+        self.buttonDESDecryptFile.setEnabled(False)
 
         self.layoutFileOutput = QVBoxLayout()
         self.layoutFileOutput.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
         self.layoutFileOutput.addWidget(self.labelOutputFile)
-        self.layoutFileOutput.addWidget(self.buttonOutput)
         
-        self.layoutApplication = QHBoxLayout()
-        self.layoutApplication.addLayout(self.layoutFileinput)
-        self.layoutApplication.addLayout(self.layoutFileButton)
-        self.layoutApplication.addLayout(self.layoutOutputButton)        
+        self.layoutApplicationDES = QHBoxLayout()
+        self.layoutApplicationDES.addLayout(self.layoutFileInput)
+        self.layoutApplicationDES.addLayout(self.layoutFileButton)
+        self.layoutApplicationDES.addLayout(self.layoutFileOutput)        
 
         self.layoutDES = QVBoxLayout()
         self.layoutDES.addLayout(self.layoutDESKey)
         self.layoutDES.addLayout(self.layoutDESText)
         self.layoutDES.addLayout(self.layoutSeparator)
         self.layoutDES.addLayout(self.layoutApplication)
+        self.layoutDES.addLayout(self.layoutApplicationDES)
         
         self.tabDES.setLayout(self.layoutDES)
         self.textDESKey.setFixedHeight(TEXT_HEIGHT) 
