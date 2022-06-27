@@ -5,7 +5,7 @@ from ..DES import file_encryptor
 from ..MD5 import cryptography_md5
 from ..RSA import cryptography_rsa
 from ..AES import aes
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QComboBox, QApplication, QTextEdit, QFileDialog, QMainWindow, QApplication, QVBoxLayout, QTabWidget, QHBoxLayout, QSpacerItem, QMessageBox, QGridLayout, QFrame, QSizePolicy, QFormLayout
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QComboBox, QApplication, QTextEdit, QFileDialog, QMainWindow, QApplication, QVBoxLayout, QTabWidget, QHBoxLayout, QSpacerItem, QMessageBox, QGridLayout, QFrame, QSizePolicy, QFormLayout, QRadioButton
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 
@@ -16,9 +16,10 @@ import time
 sys.path.append(os.path.abspath('../AES'))
 
 INITIAL_WIDTH  = 800
-INITIAL_HEIGHT = 600
+INITIAL_HEIGHT = 800
 TEXT_HEIGHT    = 40
 FONT = "Consolas"
+MODE = "Automatic"
 
 # MARGINS
 LEFT = 20
@@ -32,7 +33,7 @@ class App(QMainWindow):
 
         self.title  = 'Applications of Cryptography'
         self.left   = 550
-        self.top    = 200
+        self.top    = 180
         self.width  = INITIAL_WIDTH
         self.height = INITIAL_HEIGHT
         self.setWindowTitle(self.title)
@@ -136,11 +137,11 @@ class MyTableWidget(QWidget):
         self.labelDESCypherFile   = QLabel("", self) 
         self.labelInputFile       = QLabel("", self)
         self.labelOutputFile      = QLabel("", self)
-        self.applicationDES       = QLabel("File Encryption/ Decryption", self)
+        self.applicationDES       = QLabel("File Encryption/Decryption", self)
         self.labelStatus          = QLabel("", self)   
 
-        self.buttonDESEncrypt     = QPushButton("Encrypt",self)
-        self.buttonDESDecrypt     = QPushButton("Decrypt",self)
+        self.buttonDESEncrypt     = QPushButton("Encrypt\n>>>",self)
+        self.buttonDESDecrypt     = QPushButton("Decrypt\n<<<",self)
         self.buttonDESEncryptFile = QPushButton("Encrypt File",self)
         self.buttonDESDecryptFile = QPushButton("Decrypt File",self)
         self.buttonInput          = QPushButton("Choose File", self)
@@ -198,7 +199,7 @@ class MyTableWidget(QWidget):
         self.layoutDESText.addLayout(self.layoutDESButton)
         self.layoutDESText.addLayout(self.layoutDESRight)  
         
-        #Separator
+        # Separator
         self.layoutSeparator = QHBoxLayout()
         self.separatorL = QFrame()
         self.separatorL.setFrameShape(QFrame.HLine)
@@ -206,7 +207,7 @@ class MyTableWidget(QWidget):
         self.separatorR = QFrame()
         self.separatorR.setFrameShape(QFrame.HLine)
 
-        self.applicationDES.setFixedWidth(320)
+        self.applicationDES.setFixedWidth(310)
         self.applicationDES.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
@@ -284,7 +285,7 @@ class MyTableWidget(QWidget):
         self.labelMD5Digest   = QLabel("Digest Text:",self)
         self.labelChecksum    = QLabel("Checksum", self)
         self.applicationMD5   = QLabel("File Integrity Check", self)
-        self.buttonMD5Hash    = QPushButton("Hash",self)
+        self.buttonMD5Hash    = QPushButton("Hash\n>>>",self)
         self.textMD5Plain     = QTextEdit(self)
         self.textMD5Digest    = QTextEdit(self)
         self.comboMD5Mode     = QComboBox(self)
@@ -326,7 +327,7 @@ class MyTableWidget(QWidget):
         self.separatorR = QFrame()
         self.separatorR.setFrameShape(QFrame.HLine) 
         
-        self.applicationMD5.setFixedWidth(250)
+        self.applicationMD5.setFixedWidth(240)
         self.applicationMD5.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM)
@@ -394,31 +395,109 @@ class MyTableWidget(QWidget):
         
         # Create RSA tab
         
-        self.labelRSAKeyLength    = QLabel("Key length:",self)
-        self.labelRSAPrivateKey   = QLabel("Private Key:",self)
-        self.labelRSAEulerTotient = QLabel("Euler Totient:",self)
-        self.labelRSAPlain        = QLabel("Plain Text:",self)
+        self.labelRSAp            = QLabel("P:")
+        self.labelRSAq            = QLabel("Q:")
+        self.labelRSAPublicKey    = QLabel("Public Key:")
+        self.labelRSAPrivateKey   = QLabel("Private Key:")
+        self.labelRSAPlain        = QLabel("Plain Text:", self)
         self.labelRSACypher       = QLabel("Cipher Text:",self)
+        self.labelRSAApplication  = QLabel("Github Remote Login", self)
+        self.labelRSAStatus       = QLabel("", self)
+
+        self.textRSAp             = QTextEdit(self)
+        self.textRSAq             = QTextEdit(self)
+        self.textRSAPublicKey     = QTextEdit(self)
+        self.textRSAPrivateKey    = QTextEdit(self)
+
+        self.textRSAPlain         = QTextEdit(self)
+        self.textRSACypher        = QTextEdit(self) 
+        self.textRSAKey           = QTextEdit(self)
+        
+
+        # self.labelRSAKeyLength    = QLabel("Key length:",self)
+        # self.labelRSAPrivateKey   = QLabel("Private Key:",self)
+        # self.labelRSAEulerTotient = QLabel("Euler Totient:",self)
+
         self.buttonRSAEncrypt     = QPushButton("Encrypt",self)
         self.buttonRSADecrypt     = QPushButton("Decrypt",self)
-        self.textRSAPlain         = QTextEdit(self)
-        self.textRSACypher        = QTextEdit(self)
-        self.textRSAKeyLength     = QTextEdit(self)
-        self.textRSAPrivateKey = QTextEdit(self)
-        self.textRSAEulerTotient=QTextEdit(self)
+        self.buttonGenerateKey    = QPushButton("Generate Key", self)
+        self.buttonGenerateRSAKey = QPushButton("Generate Key", self)
+        self.buttonCopyKey        = QPushButton("Copy to Clipboard", self)
+        self.buttonConnect        = QPushButton("Connect Github", self)
+
+        # self.textRSAKeyLength     = QTextEdit(self)
+        # self.textRSAPrivateKey    = QTextEdit(self)
+        # self.textRSAEulerTotient  = QTextEdit(self)
         
         self.layoutRSAButton = QVBoxLayout()
+        self.layoutRSAButton.setSpacing(20)
+        self.layoutRSAButton.setContentsMargins(LEFT, TOP * 3, RIGHT, BOTTOM)
         self.layoutRSAButton.addStretch()
         self.layoutRSAButton.addWidget(self.buttonRSAEncrypt)
-        self.layoutRSAButton.addStretch()
         self.layoutRSAButton.addWidget(self.buttonRSADecrypt)
         self.layoutRSAButton.addStretch()
         
+        self.layoutRSAMode = QHBoxLayout()
+        self.layoutRSAMode.addWidget(QLabel("Mode:", self))
+        self.radioButton = QRadioButton("Automatic")
+        self.radioButton.setChecked(True)
+        self.radioButton.toggled.connect(self.onClicked)
+        self.radioButton.mode = "Automatic"
+        self.layoutRSAMode.addWidget(self.radioButton)
+
+        self.radioButton = QRadioButton("Manual")
+        self.radioButton.toggled.connect(self.onClicked)
+        self.radioButton.mode = "Manual"
+        self.layoutRSAMode.addWidget(self.radioButton)
+
+        self.layoutRSAMode.addWidget(QLabel("   ", self) )
+        self.layoutRSAMode.addWidget(self.buttonGenerateKey)
+        self.layoutRSAMode.addStretch()
+
+        self.layoutRSAMode.setSpacing(20)
+        self.layoutRSAMode.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        
+        self.layoutRSAValues = QGridLayout()
+        self.layoutRSAValues.setSpacing(15)
+        self.layoutRSAValues.setContentsMargins(LEFT, 0, RIGHT, BOTTOM)
+
+        self.layoutRSAValues.addWidget(self.labelRSAp, 0, 0)
+        self.labelRSAp.setAlignment(Qt.AlignRight)
+        self.layoutRSAValues.addWidget(self.textRSAp, 0, 1)
+
+        self.layoutRSAValues.addWidget(self.labelRSAq, 0, 2)
+        self.labelRSAq.setAlignment(Qt.AlignRight)
+        self.layoutRSAValues.addWidget(self.textRSAq, 0, 3)
+
+        self.layoutRSAValues.addWidget(self.labelRSAPublicKey, 1, 0)  
+        self.layoutRSAValues.addWidget(self.textRSAPublicKey, 1, 1)
+
+        self.layoutRSAValues.addWidget(self.labelRSAPrivateKey, 1, 2)
+        self.layoutRSAValues.addWidget(self.textRSAPrivateKey, 1, 3)
+
+        # By default in Automatic Mode
+        self.textRSAp.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.textRSAq.setTextInteractionFlags(Qt.NoTextInteraction)
+
+        # Never Interact
+        self.textRSAPublicKey.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.textRSAPrivateKey.setTextInteractionFlags(Qt.NoTextInteraction)
+
+
+        # self.layoutRSAButton = QVBoxLayout()
+        # self.layoutRSAButton.addStretch()
+        # self.layoutRSAButton.addWidget(self.buttonRSAEncrypt)
+        # self.layoutRSAButton.addStretch()
+        # self.layoutRSAButton.addWidget(self.buttonRSADecrypt)
+        # self.layoutRSAButton.addStretch()
+        
         self.layoutRSALeft = QVBoxLayout()
+        self.layoutRSALeft.setContentsMargins(LEFT, 0, RIGHT, BOTTOM - 5)
         self.layoutRSALeft.addWidget(self.labelRSAPlain)
         self.layoutRSALeft.addWidget(self.textRSAPlain)
         
         self.layoutRSARight = QVBoxLayout()
+        self.layoutRSARight.setContentsMargins(LEFT, 0, RIGHT, BOTTOM - 5)
         self.layoutRSARight.addWidget(self.labelRSACypher)
         self.layoutRSARight.addWidget(self.textRSACypher)
         
@@ -426,42 +505,92 @@ class MyTableWidget(QWidget):
         self.layoutRSAText.addLayout(self.layoutRSALeft)
         self.layoutRSAText.addLayout(self.layoutRSAButton)
         self.layoutRSAText.addLayout(self.layoutRSARight)
+       
+        # Separator
+        self.layoutSeparator = QHBoxLayout()
+        self.separatorL = QFrame()
+        self.separatorL.setFrameShape(QFrame.HLine)
         
-        self.layoutRSAKeyLength = QHBoxLayout()
-        self.layoutRSAKeyLength.addWidget(self.labelRSAKeyLength)
-        self.layoutRSAKeyLength.addWidget(self.textRSAKeyLength)
+        self.separatorR = QFrame()
+        self.separatorR.setFrameShape(QFrame.HLine)
+
+        self.labelRSAApplication.setFixedWidth(230)
+        self.labelRSAApplication.setAlignment(Qt.AlignCenter)
+
+        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
+        self.labelRSAApplication.setStyleSheet("font-weight: bold;")
         
-        self.layoutRSAPrivateKey = QHBoxLayout()
-        self.layoutRSAPrivateKey.addWidget(self.labelRSAPrivateKey)
-        self.layoutRSAPrivateKey.addWidget(self.textRSAPrivateKey)
+        self.layoutSeparator.addWidget(self.separatorL)
+        self.layoutSeparator.addWidget(self.labelRSAApplication)
+        self.layoutSeparator.addWidget(self.separatorR) 
+
+        self.layoutKeyGen = QVBoxLayout()
+        self.layoutKeyGen.setSpacing(20)
+        self.layoutKeyGen.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutKeyGen.addWidget(self.buttonGenerateRSAKey)
+        self.layoutKeyGen.addWidget(self.textRSAKey)
+        self.textRSAKey.setTextInteractionFlags(Qt.NoTextInteraction)
+
+        self.layoutConnect = QVBoxLayout()
+        self.layoutConnect.addWidget(self.buttonCopyKey)
+        self.layoutConnect.addWidget(self.buttonConnect)
+        self.layoutConnect.addWidget(self.labelRSAStatus)
+
+        self.layoutApplication = QHBoxLayout()
+        self.layoutApplication.addLayout(self.layoutKeyGen)
+        self.layoutApplication.addLayout(self.layoutConnect)
+
+        # self.layoutRSAKeyLength = QHBoxLayout()
+        # self.layoutRSAKeyLength.addWidget(self.labelRSAKeyLength)
+        # self.layoutRSAKeyLength.addWidget(self.textRSAKeyLength)
         
-        self.layoutRSAEulerTotient = QHBoxLayout()
-        self.layoutRSAEulerTotient.addWidget(self.labelRSAEulerTotient)
-        self.layoutRSAEulerTotient.addWidget(self.textRSAEulerTotient)
+        # self.layoutRSAPrivateKey = QHBoxLayout()
+        # self.layoutRSAPrivateKey.addWidget(self.labelRSAPrivateKey)
+        # self.layoutRSAPrivateKey.addWidget(self.textRSAPrivateKey)
         
-        self.layoutRSAKey = QVBoxLayout()
-        self.layoutRSAKey.addLayout(self.layoutRSAKeyLength)
-        self.layoutRSAKey.addLayout(self.layoutRSAPrivateKey)
-        self.layoutRSAKey.addLayout(self.layoutRSAEulerTotient)
+        # self.layoutRSAEulerTotient = QHBoxLayout()
+        # self.layoutRSAEulerTotient.addWidget(self.labelRSAEulerTotient)
+        # self.layoutRSAEulerTotient.addWidget(self.textRSAEulerTotient)
+        
+        # self.layoutRSAKey = QVBoxLayout()
+        # self.layoutRSAKey.addLayout(self.layoutRSAKeyLength)
+        # self.layoutRSAKey.addLayout(self.layoutRSAPrivateKey)
+        # self.layoutRSAKey.addLayout(self.layoutRSAEulerTotient)
         
         
         self.layoutRSA = QVBoxLayout()
-        self.layoutRSA.addLayout(self.layoutRSAKey)
+        self.layoutRSA.addLayout(self.layoutRSAMode)
+        self.layoutRSA.addLayout(self.layoutRSAValues)
         self.layoutRSA.addLayout(self.layoutRSAText)
-        
+        self.layoutRSA.addLayout(self.layoutSeparator)
+        self.layoutRSA.addLayout(self.layoutApplication)
+
         self.tabRSA.setLayout(self.layoutRSA)
         
-        self.textRSAKeyLength.setFixedHeight(TEXT_HEIGHT)
+        self.buttonGenerateKey.setFixedWidth(200)
+        self.textRSAp.setFixedHeight(TEXT_HEIGHT)
+        self.textRSAq.setFixedHeight(TEXT_HEIGHT)
+        self.textRSAPublicKey.setFixedHeight(TEXT_HEIGHT)
         self.textRSAPrivateKey.setFixedHeight(TEXT_HEIGHT)
-        self.textRSAEulerTotient.setFixedHeight(TEXT_HEIGHT)
+
+#        self.textRSAKeyLength.setFixedHeight(TEXT_HEIGHT)
+#        self.textRSAPrivateKey.setFixedHeight(TEXT_HEIGHT)
+#        self.textRSAEulerTotient.setFixedHeight(TEXT_HEIGHT)
         
-        self.buttonRSAEncrypt.clicked.connect(self._RSAEncrypt)
-        self.buttonRSADecrypt.clicked.connect(self._RSADecrypt) 
+#        self.buttonRSAEncrypt.clicked.connect(self._RSAEncrypt)
+#        self.buttonRSADecrypt.clicked.connect(self._RSADecrypt) 
              
         # Add tabs to widget        
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
         
+
+    # Radio Button Clicked
+    def onClicked(self):
+        self.radioButton = self.sender()
+        if(self.radioButton.isChecked() ):
+            MODE = self.radioButton.mode
+
     # Create functions for AES
     def _AESEncrypt(self):
         mode = self.comboAESMode.currentIndex()
@@ -510,7 +639,6 @@ class MyTableWidget(QWidget):
         for i in cypherText:
             cypherText2.append(ord(i))
         
-        #print (cypherText2)
         instance = aes.AESModeOfOperation()
         initialVector = [103, 35, 148, 239, 76, 213, 47, 118,255, 222, 123, 176, 106, 134, 98, 92]
 

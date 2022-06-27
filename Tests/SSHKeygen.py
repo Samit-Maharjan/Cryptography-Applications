@@ -51,13 +51,12 @@ def push_key(user, host, port=22):
 
 def main():
     """Start of script."""
-    parser = argparse.ArgumentParser(
-        description="Uses the ssh-keygen and ssh-copy-id commands found on Mac and Linux systems. Mac Users will need to install ssh-copy-id before attempting to use this script. If you do not have Homebrew installed, please visit https://github.com/beautifulcode/ssh-copy-id-for-OSX for the install. If you do have Homebrew installed, run the command brew install ssh-copy-id in Terminal.")
+    parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=[
-                        "GenKey", "PushKey"], help="Action to be preformed")
-    parser.add_argument("-u", "--user", help="SSH username")
-    parser.add_argument("-s", "--host", help="IP or FQDN of server")
-    parser.add_argument("-p", "--port", help="SSH port number")
+                        "GenKey", "PushKey"], help = "Action to be preformed")
+    parser.add_argument("-u", "--user", help = "SSH username")
+    parser.add_argument("-s", "--host", help = "IP or FQDN of server")
+    parser.add_argument("-p", "--port", help = "SSH port number")
     args = parser.parse_args()
     if (args.action == "GenKey"):
         gen_key()
