@@ -69,11 +69,25 @@ class MyTableWidget(QWidget):
         self.tabs.addTab(self.tabRSA,"RSA")
  
         # Create AES tab
-        self.labelAESKey      = QLabel("Key:",self)
+        self.labelAESKey      = QLabel(" Key:",self)
         self.labelAESPlain    = QLabel("Plain Text:",self)
         self.labelAESCypher   = QLabel("Cipher Text:",self)
+        self.applicationAES   = QLabel("Message Encryption", self)
+
         self.buttonAESEncrypt = QPushButton("Encrypt\n>>>",self)
         self.buttonAESDecrypt = QPushButton("Decrypt\n<<<",self)
+
+        self.buttonServerSend = QPushButton("➤")
+        self.buttonClientSend = QPushButton("➤")
+
+        self.labelServer      = QLabel("Server", self)
+        self.labelClient      = QLabel("Client", self)
+        
+        self.textServer       = QTextEdit(self)
+        self.textClient       = QTextEdit(self)
+        self.textServerSend   = QTextEdit(self)
+        self.textClientSend   = QTextEdit(self)
+    
         self.textAESPlain     = QTextEdit(self)
         self.textAESCypher    = QTextEdit(self)
         self.textAESKey       = QTextEdit(self)
@@ -82,7 +96,10 @@ class MyTableWidget(QWidget):
         self.comboAESMode.addItem("OFB")
         self.comboAESMode.addItem("CFB")
         self.comboAESMode.addItem("CBC")
-        
+
+        self.textServer.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.textClient.setTextInteractionFlags(Qt.NoTextInteraction)
+
         self.layoutAESButton = QVBoxLayout()
         self.layoutAESButton.setContentsMargins(LEFT, 0, RIGHT, 0)
         self.layoutAESButton.setSpacing(50)
@@ -112,17 +129,70 @@ class MyTableWidget(QWidget):
         self.layoutAESKey = QHBoxLayout()
         self.layoutAESKey.setSpacing(20)
         self.layoutAESKey.setContentsMargins(LEFT, TOP, BOTTOM, RIGHT)
+        self.layoutAESKey.addWidget(self.comboAESMode)
         self.layoutAESKey.addWidget(self.labelAESKey)
         self.layoutAESKey.addWidget(self.textAESKey)
-        self.layoutAESKey.addWidget(self.comboAESMode)
         
+       
+        # Separator
+        self.layoutSeparator = QHBoxLayout()
+        self.separatorL = QFrame()
+        self.separatorL.setFrameShape(QFrame.HLine)
+        
+        self.separatorR = QFrame()
+        self.separatorR.setFrameShape(QFrame.HLine)
+
+        self.applicationAES.setFixedWidth(220)
+        self.applicationAES.setAlignment(Qt.AlignCenter)
+
+        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
+        self.applicationAES.setStyleSheet("font-weight: bold;") 
+
+        self.layoutSeparator.addWidget(self.separatorL)
+        self.layoutSeparator.addWidget(self.applicationAES)
+        self.layoutSeparator.addWidget(self.separatorR)
+
+        #Application Part
+
+        self.layoutApplication = QHBoxLayout()
+
+        self.ServerSend = QHBoxLayout()
+        self.ServerSend.addWidget(self.textServerSend)
+        self.ServerSend.addWidget(self.buttonServerSend)
+
+        self.ClientSend = QHBoxLayout()
+        self.ClientSend.addWidget(self.textClientSend)
+        self.ClientSend.addWidget(self.buttonClientSend)
+
+        self.layoutServer = QVBoxLayout()
+        self.layoutServer.setSpacing(20)
+        self.layoutServer.setContentsMargins(LEFT, 0, RIGHT, BOTTOM)
+        self.layoutServer.addWidget(self.labelServer)        
+        self.layoutServer.addWidget(self.textServer)
+        self.layoutServer.addLayout(self.ServerSend)
+
+        self.layoutClient = QVBoxLayout()
+        self.layoutClient.setSpacing(20)
+        self.layoutClient.setContentsMargins(LEFT, 0, RIGHT, BOTTOM)
+        self.layoutClient.addWidget(self.labelClient)        
+        self.layoutClient.addWidget(self.textClient)
+        self.layoutClient.addLayout(self.ClientSend)
+        
+        self.layoutApplication.addLayout(self.layoutServer)
+        self.layoutApplication.addLayout(self.layoutClient)
+
         self.layoutAES = QVBoxLayout()
         self.layoutAES.addLayout(self.layoutAESKey)
         self.layoutAES.addLayout(self.layoutAESText)
-        
+        self.layoutAES.addLayout(self.layoutSeparator)
+        self.layoutAES.addLayout(self.layoutApplication)
+       
+
         self.tabAES.setLayout(self.layoutAES)
         self.textAESKey.setFixedHeight(TEXT_HEIGHT) 
-        
+        self.textServerSend.setFixedHeight(TEXT_HEIGHT)
+        self.textClientSend.setFixedHeight(TEXT_HEIGHT)
+
         self.buttonAESEncrypt.clicked.connect(self._AESEncrypt)
         self.buttonAESDecrypt.clicked.connect(self._AESDecrypt)
         
