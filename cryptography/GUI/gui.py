@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from ..DES import cryptography_des
 from ..DES import file_encryptor
@@ -411,7 +410,8 @@ class MyTableWidget(QWidget):
 
         self.textRSAPlain         = QTextEdit(self)
         self.textRSACypher        = QTextEdit(self) 
-        self.textRSAKey           = QTextEdit(self)
+        self.textRSAPkKey         = QTextEdit(self)
+        self.textRSAPuKey         = QTextEdit(self)
         
 
         # self.labelRSAKeyLength    = QLabel("Key length:",self)
@@ -517,29 +517,40 @@ class MyTableWidget(QWidget):
         self.labelRSAApplication.setFixedWidth(230)
         self.labelRSAApplication.setAlignment(Qt.AlignCenter)
 
-        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
+        self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM)
         self.labelRSAApplication.setStyleSheet("font-weight: bold;")
         
         self.layoutSeparator.addWidget(self.separatorL)
         self.layoutSeparator.addWidget(self.labelRSAApplication)
         self.layoutSeparator.addWidget(self.separatorR) 
 
-        self.layoutKeyGen = QVBoxLayout()
+        self.layoutKeyGen = QGridLayout()
         self.layoutKeyGen.setSpacing(20)
         self.layoutKeyGen.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
-        self.layoutKeyGen.addWidget(self.buttonGenerateRSAKey)
-        self.layoutKeyGen.addWidget(self.textRSAKey)
-        self.textRSAKey.setTextInteractionFlags(Qt.NoTextInteraction)
+
+        self.layoutKeyGen.addWidget(self.buttonGenerateRSAKey, 0, 0, 1, 2, Qt.AlignCenter)    
+
+        self.layoutKeyGen.addWidget(QLabel("Private Key:", self), 1, 0, Qt.AlignCenter)
+        self.layoutKeyGen.addWidget(QLabel("Public Key:", self), 1, 1, Qt.AlignCenter)
+        self.layoutKeyGen.addWidget(self.textRSAPkKey, 2, 0)
+        self.layoutKeyGen.addWidget(self.textRSAPuKey, 2, 1)
+
+        self.textRSAPkKey.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.textRSAPuKey.setTextInteractionFlags(Qt.NoTextInteraction)
+
 
         self.layoutConnect = QVBoxLayout()
+        self.layoutConnect.setSpacing(20)
+        self.layoutConnect.setContentsMargins(LEFT * 3, TOP * 7, RIGHT * 3, BOTTOM)
         self.layoutConnect.addWidget(self.buttonCopyKey)
         self.layoutConnect.addWidget(self.buttonConnect)
         self.layoutConnect.addWidget(self.labelRSAStatus)
 
         self.layoutApplication = QHBoxLayout()
         self.layoutApplication.addLayout(self.layoutKeyGen)
-        self.layoutApplication.addLayout(self.layoutConnect)
 
+        self.layoutApplication.addLayout(self.layoutConnect)
+        
         # self.layoutRSAKeyLength = QHBoxLayout()
         # self.layoutRSAKeyLength.addWidget(self.labelRSAKeyLength)
         # self.layoutRSAKeyLength.addWidget(self.textRSAKeyLength)
@@ -567,7 +578,15 @@ class MyTableWidget(QWidget):
 
         self.tabRSA.setLayout(self.layoutRSA)
         
-        self.buttonGenerateKey.setFixedWidth(200)
+        self.buttonGenerateKey.setFixedWidth(180)
+        self.buttonGenerateRSAKey.setFixedWidth(180)
+
+        # self.textRSAPuKey.setFixedWidth(250)
+        # self.textRSAPkKey.setFixedWidth(250)
+
+        self.buttonCopyKey.setFixedWidth(250)
+        self.buttonConnect.setFixedWidth(250)
+
         self.textRSAp.setFixedHeight(TEXT_HEIGHT)
         self.textRSAq.setFixedHeight(TEXT_HEIGHT)
         self.textRSAPublicKey.setFixedHeight(TEXT_HEIGHT)
