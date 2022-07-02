@@ -26,6 +26,8 @@ TOP = 20
 RIGHT = 20
 BOTTOM = 20
 
+CSS = "font-weight: bold; font-size: 20px;"
+
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -43,10 +45,8 @@ class App(QMainWindow):
         
 
 class MyTableWidget(QWidget):        
- 
     def __init__(self, parent):   
         super(QWidget, self).__init__(parent)
-
         self.filePath = "" # file path for whatever file
         self.layout = QVBoxLayout(self)
         
@@ -76,6 +76,7 @@ class MyTableWidget(QWidget):
 
         self.buttonAESEncrypt = QPushButton("Encrypt\n>>>",self)
         self.buttonAESDecrypt = QPushButton("Decrypt\n<<<",self)
+        self.buttonClear      = QPushButton("Clear", self)
 
         self.buttonServerSend = QPushButton("➤")
         self.buttonClientSend = QPushButton("➤")
@@ -102,11 +103,12 @@ class MyTableWidget(QWidget):
 
         self.layoutAESButton = QVBoxLayout()
         self.layoutAESButton.setContentsMargins(LEFT, 0, RIGHT, 0)
-        self.layoutAESButton.setSpacing(50)
+        self.layoutAESButton.setSpacing(20)
 
         self.layoutAESButton.addStretch() 
         self.layoutAESButton.addWidget(self.buttonAESEncrypt)
         self.layoutAESButton.addWidget(self.buttonAESDecrypt)
+        self.layoutAESButton.addWidget(self.buttonClear)
         self.layoutAESButton.addStretch()
 
         self.layoutAESLeft = QVBoxLayout()
@@ -146,7 +148,7 @@ class MyTableWidget(QWidget):
         self.applicationAES.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
-        self.applicationAES.setStyleSheet("font-weight: bold;") 
+        self.applicationAES.setStyleSheet(CSS) 
 
         self.layoutSeparator.addWidget(self.separatorL)
         self.layoutSeparator.addWidget(self.applicationAES)
@@ -193,9 +195,17 @@ class MyTableWidget(QWidget):
         self.textServerSend.setFixedHeight(TEXT_HEIGHT)
         self.textClientSend.setFixedHeight(TEXT_HEIGHT)
 
-        self.buttonAESEncrypt.clicked.connect(self._AESEncrypt)
-        self.buttonAESDecrypt.clicked.connect(self._AESDecrypt)
-        
+        self.buttonAESEncrypt.clicked.connect(lambda : self._AES(1) )
+        self.buttonAESDecrypt.clicked.connect(lambda : self._AES(0) )
+
+        self.buttonServerSend.clicked.connect(lambda : self._AESApp(1) )
+        self.buttonClientSend.clicked.connect(lambda : self._AESApp(0) )
+        self.buttonClear.clicked.connect(lambda : 
+                self.textAESCypher.setPlainText("") or
+                self.textAESPlain.setPlainText("")  or
+                self.textServer.setPlainText("")    or
+                self.textClient.setPlainText("") )
+
         # Create DES tab
         
         self.labelDESKey          = QLabel("  Key:",self)
@@ -214,6 +224,7 @@ class MyTableWidget(QWidget):
         self.buttonDESEncryptFile = QPushButton("Encrypt File",self)
         self.buttonDESDecryptFile = QPushButton("Decrypt File",self)
         self.buttonInput          = QPushButton("Choose File", self)
+        self.buttonClear          = QPushButton("Clear", self)
 
         self.textDESPlain         = QTextEdit(self)
         self.textDESCypher        = QTextEdit(self)
@@ -250,6 +261,7 @@ class MyTableWidget(QWidget):
         self.layoutDESButton.addStretch()
         self.layoutDESButton.addWidget(self.buttonDESEncrypt)
         self.layoutDESButton.addWidget(self.buttonDESDecrypt)
+        self.layoutDESButton.addWidget(self.buttonClear)
         self.layoutDESButton.addStretch()
 
     
@@ -280,7 +292,7 @@ class MyTableWidget(QWidget):
         self.applicationDES.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM * 2)
-        self.applicationDES.setStyleSheet("font-weight: bold;")
+        self.applicationDES.setStyleSheet(CSS)
         
         self.layoutSeparator.addWidget(self.separatorL)
         self.layoutSeparator.addWidget(self.applicationDES)
@@ -343,11 +355,14 @@ class MyTableWidget(QWidget):
         self.textDESKey.setFixedHeight(TEXT_HEIGHT) 
         self.textDESInitVec.setFixedHeight(TEXT_HEIGHT)
         
-        self.buttonDESEncrypt.clicked.connect(self._DESEncrypt)
-        self.buttonDESDecrypt.clicked.connect(self._DESDecrypt)
-        self.buttonDESEncryptFile.clicked.connect(self._DESEncryptFile)
-        self.buttonDESDecryptFile.clicked.connect(self._DESDecryptFile)
-        
+        self.buttonDESEncrypt.clicked.connect(lambda : self._DES(1) )
+        self.buttonDESDecrypt.clicked.connect(lambda : self._DES(0) )
+        self.buttonDESEncryptFile.clicked.connect(lambda : self._DESFile(1) )
+        self.buttonDESDecryptFile.clicked.connect(lambda : self._DESFile(0) )
+        self.buttonClear.clicked.connect(lambda:
+                self.textDESPlain.setPlainText("") or
+                self.textDESCypher.setPlainText("") )
+
         # Create MD5 tab
         
         self.labelMD5Plain    = QLabel("Plain Text:",self)
@@ -400,7 +415,7 @@ class MyTableWidget(QWidget):
         self.applicationMD5.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM)
-        self.applicationMD5.setStyleSheet("font-weight: bold;")
+        self.applicationMD5.setStyleSheet(CSS)
 
         self.layoutSeparator.addWidget(self.separatorL)
         self.layoutSeparator.addWidget(self.applicationMD5)
@@ -588,7 +603,7 @@ class MyTableWidget(QWidget):
         self.labelRSAApplication.setAlignment(Qt.AlignCenter)
 
         self.layoutSeparator.setContentsMargins(0, TOP, 0, BOTTOM)
-        self.labelRSAApplication.setStyleSheet("font-weight: bold;")
+        self.labelRSAApplication.setStyleSheet(CSS)
         
         self.layoutSeparator.addWidget(self.separatorL)
         self.layoutSeparator.addWidget(self.labelRSAApplication)
@@ -680,21 +695,74 @@ class MyTableWidget(QWidget):
         if(self.radioButton.isChecked() ):
             MODE = self.radioButton.mode
 
+
     # Create functions for AES
-    def _AESEncrypt(self):
+    def _AESApp(self, server):
+        serverText = self.textServerSend.toPlainText()
+        clientText  = self.textClientSend.toPlainText() 
+
+        if server == 1:
+            self.textServerSend.setPlainText("")
+            print("Server:")
+            print("Message from Server: ", self._AESEncrypt(serverText) )
+            self._server(serverText, 1, 0) 
+
+        else:
+            self.textClientSend.setPlainText("")
+            print("Client:")
+            print("Message from Client: ", self._AESEncrypt(clientText) )
+            self._client(clientText, 0, 1)
+
+    def _server(self, serverText, server = 0, client = 0):
+        if client:
+            print("Server:")
+            print("Message received from Client: ", serverText)
+            print("Message decrypted in Server: ", self._AESDecrypt(serverText), "\n")
+            self.textServer.append("Client: " + self._AESDecrypt(serverText) + "\n")
+
+        else:
+            self.textServer.append("Server: " + serverText + "\n")
+        if server: 
+            self._client(self._AESEncrypt(serverText), 1, 0)
+
+    def _client(self, clientText, server = 0, client = 0):
+        if server:
+            print("Client:")
+            print("Message received from Server: ", clientText)
+            print("Message decrypted in Client: ", self._AESDecrypt(clientText), "\n")
+            self.textClient.append("Server: " + self._AESDecrypt(clientText) + "\n")
+        else:
+            self.textClient.append("Client: " + clientText + "\n")
+        if client: 
+            self._server(self._AESEncrypt(clientText), 0, 1)
+
+
+    def _AES(self, encrypt:int):
+        if encrypt == 1:
+            text = self.textAESPlain.toPlainText()
+            cypherText = self._AESEncrypt(text)
+            self.textAESCypher.setPlainText(cypherText)
+
+        else:
+            text = self.textAESCypher.toPlainText()
+            plainText = self._AESDecrypt(text)
+            self.textAESPlain.setPlainText(self._AESDecrypt(text) )
+            
+
+    def _AESEncrypt(self, plainText):
         mode = self.comboAESMode.currentIndex()
         key = self.textAESKey.toPlainText()
-        if len(key)>16:
+        if len(key) > 16:
             key = key[:16]
-        elif len(key)<16:
-            key = key + " "*(16-len(key))
-        #print(key)
+        
+        # padding with whitespaces
+        elif len(key) < 16:
+            key = key + " " * (16 - len(key) )
+        
+        # cipherkey with Unicode value of key
         cypherKey = []
         for i in key:
             cypherKey.append(ord(i))
-        #print(cypherKey)
-        
-        plainText = self.textAESPlain.toPlainText()
         
         instance = aes.AESModeOfOperation()
         instance.set_key(key)
@@ -709,24 +777,28 @@ class MyTableWidget(QWidget):
             encodeMode = "CBC"
         
         modeAES, lengthAES, cypherText = instance.encrypt(plainText, instance.modeOfOperation[encodeMode], cypherKey, instance.aes.keySize["SIZE_128"], initialVector)
+
+        return "".join(chr(x) for x in cypherText)  
         
-        self.textAESCypher.setPlainText("".join(chr(x) for x in cypherText))
-        #print(cypherText)
-        
-    def _AESDecrypt(self):
+    def _AESDecrypt(self, cypherText):
         mode = self.comboAESMode.currentIndex()
         key = self.textAESKey.toPlainText()
-        if len(key)>16:
+        if len(key) > 16:
             key = key[:16]
-        elif len(key)<16:
-            key = key + " "*(16-len(key))
+
+        # padding with whitespace
+        elif len(key) < 16:
+            key = key + " " * (16 - len(key))
         cypherKey = []
+        
+        # cipherkey from Unicode value of Key
         for i in key:
             cypherKey.append(ord(i))
-        cypherText = self.textAESCypher.toPlainText()
-        cypherText2 = []
+        
+        # Unicode values of Cipher text
+        cypherTextASCII = []
         for i in cypherText:
-            cypherText2.append(ord(i))
+            cypherTextASCII.append(ord(i))
         
         instance = aes.AESModeOfOperation()
         initialVector = [103, 35, 148, 239, 76, 213, 47, 118,255, 222, 123, 176, 106, 134, 98, 92]
@@ -738,15 +810,27 @@ class MyTableWidget(QWidget):
         elif mode == 2: # CBC
             encodeMode = "CBC"        
         
-        plainText = instance.decrypt(cypherText2, None, mode, cypherKey, instance.aes.keySize["SIZE_128"], initialVector)
-        self.textAESPlain.setPlainText(plainText)
-        
+        plainText = instance.decrypt(cypherTextASCII, None, mode, cypherKey, instance.aes.keySize["SIZE_128"], initialVector)
+        return plainText
         
     # Create functions for DES
-    def _DESEncrypt(self):
+    def _DES(self, encrypt):
+        if(encrypt == 1):
+            text = self.textDESPlain.toPlainText()
+            cypherText = self._DESEncrypt(text)
+            self.textDESCypher.setPlainText(cypherText)
+
+        else:
+            text = self.textDESCypher.toPlainText()
+            plainText = self._DESDecrypt(text)
+            self.textDESPlain.setPlainText(plainText)
+            
+    def _DESFile(self, encrypt):
+        return
+
+    def _DESEncrypt(self, plainText):
         mode = self.comboDESMode.currentIndex()
         key = self.textDESKey.toPlainText()
-        plainText = self.textDESPlain.toPlainText()
         
         if plainText == "": # file encrypt
             if self.filePath:
@@ -790,9 +874,9 @@ class MyTableWidget(QWidget):
                 instance.encrypt()
             
             cypherText = instance.get_cipher_text()  
-            self.textDESCypher.setPlainText(cypherText)  
+            return cypherText
             
-    def _DESDecrypt(self):
+    def _DESDecrypt(self, cypherText):
         mode = self.comboDESMode.currentIndex()
         key = self.textDESKey.toPlainText()
         cypherText = self.textDESCypher.toPlainText()
