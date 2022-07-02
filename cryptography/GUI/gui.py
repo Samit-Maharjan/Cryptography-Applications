@@ -1,4 +1,3 @@
-
 from ..DES import cryptography_des
 from ..DES import file_encryptor
 from ..MD5 import cryptography_md5
@@ -48,6 +47,8 @@ class MyTableWidget(QWidget):
     def __init__(self, parent):   
         super(QWidget, self).__init__(parent)
         self.filePath = "" # file path for whatever file
+        self.MD5FilePath = ""
+        self.MD5ChecksumPath = ""
         self.layout = QVBoxLayout(self)
         
 
@@ -368,24 +369,32 @@ class MyTableWidget(QWidget):
         self.labelMD5Digest   = QLabel("Digest Text:",self)
         self.labelChecksum    = QLabel("Checksum", self)
         self.applicationMD5   = QLabel("File Integrity Check", self)
-        self.buttonMD5Hash    = QPushButton("Hash\n>>>",self)
+            
+        self.labelPlainFile   = QLabel("", self)
+        self.labelChecksumFile= QLabel("", self)
+        self.labelStatus      = QLabel("", self) 
         self.textMD5Plain     = QTextEdit(self)
         self.textMD5Digest    = QTextEdit(self)
         self.comboMD5Mode     = QComboBox(self)
+
+        self.buttonMD5Clear   = QPushButton("Clear", self)
+        self.buttonMD5Hash    = QPushButton("Hash\n>>>",self)
         self.buttonFile       = QPushButton("Choose File", self)
         self.buttonChecksum   = QPushButton("Choose File", self)
         self.buttonGenerate   = QPushButton("Generate", self)
         self.buttonVerify     = QPushButton("Verify", self)
-        self.labelPlainFile   = QLabel("", self)
-        self.labelChecksumFile= QLabel("", self)
-        self.labelStatus      = QLabel("", self)
+
 
         self.comboMD5Mode.addItem("Generate")
         self.comboMD5Mode.addItem("Verify") 
         
         self.layoutMD5Button = QVBoxLayout()
+        self.layoutMD5Button.setSpacing(20)
         self.layoutMD5Button.setContentsMargins(LEFT, 0, RIGHT, 0)
+        self.layoutMD5Button.addStretch()
         self.layoutMD5Button.addWidget(self.buttonMD5Hash)
+        self.layoutMD5Button.addWidget(self.buttonMD5Clear)
+        self.layoutMD5Button.addStretch()
         
         self.layoutMD5Left = QVBoxLayout()
         self.layoutMD5Left.addWidget(self.labelMD5Plain)
@@ -474,7 +483,17 @@ class MyTableWidget(QWidget):
         self.layoutMD5.addLayout(self.layoutMD5Application)
 
         self.tabMD5.setLayout(self.layoutMD5)
+
         self.buttonMD5Hash.clicked.connect(self._MD5Hash)
+
+        self.buttonVerify.clicked.connect(lambda: self._MD5(0) )
+        self.buttonGenerate.clicked.connect(lambda: self._MD5(1) )
+        self.labelChecksumFile.mousePressEvent = self._openChecksum 
+
+        self.buttonMD5Clear.clicked.connect(self._clearMD5)
+        self.comboMD5Mode.currentIndexChanged[int].connect(self._MD5Change)
+        self.buttonFile.clicked.connect(self._MD5File)
+        self.buttonChecksum.clicked.connect(self._MD5Checksum)
         
         # Create RSA tab
         
@@ -983,11 +1002,95 @@ class MyTableWidget(QWidget):
             self.labelInputFile.setWordWrap(True)
 
     # Create function for MD5 
+    def _openChecksum(self, *args, **kwargs):
+        import subprocess
+        opener = "xdg-open"
+        if os.path.exists(self.MD5ChecksumPath):
+            subprocess.call([opener, self.MD5ChecksumPath])
+    
+    def _clearMD5(self):
+        self.textMD5Plain.setPlainText("")
+        self.textMD5Digest.setPlainText("")
+        self.labelChecksumFile.setText("")
+        self.labelPlainFile.setText("")
+        self.MD5ChecksumPath = ""
+        self.MD5FilePath = ""
+
+    def _MD5Change(self, index):
+        if index == 0:
+            self.buttonGenerate.setEnabled(True)
+            self.buttonVerify.setEnabled(False)
+            self.buttonChecksum.setEnabled(False)
+        else:
+            self.buttonVerify.setEnabled(True)
+            self.buttonGenerate.setEnabled(False)
+            self.buttonChecksum.setEnabled(True)
+
     def _MD5Hash(self):
         plainText = self.textMD5Plain.toPlainText()
         instance = cryptography_md5.CryptographyMD5()
         digest = instance.encrypt(plainText)
         self.textMD5Digest.setPlainText(digest)
+
+    def _MD5(self, generate):
+        instance = cryptography_md5.CryptographyMD5()
+
+        if self.MD5FilePath == "":
+            msgBox = QMessageBox()
+            msgBox.setWindowTitle(" ")
+            msgBox.setIcon(QMessageBox.Warning)
+            msgBox.setText("Please select the File...")
+            msgBox.exec()
+            return
+
+        fileIndex = self.MD5FilePath.rindex("/")
+        src = self.MD5FilePath[ : fileIndex]
+        fname = self.MD5FilePath[fileIndex + 1:] 
+        
+        if generate == 1:
+            instance.filedigest(src, fname)
+            self.MD5ChecksumPath = src + "/checksum/" + fname[:fname.rindex(".")] + "_checksum.txt"
+            self.labelChecksumFile.setText(self.MD5ChecksumPath)
+            self.labelChecksumFile.setWordWrap(True)
+
+        else:
+            if self.MD5ChecksumPath == "":
+                msgBox = QMessageBox()
+                msgBox.setWindowTitle(" ")
+                msgBox.setIcon(QMessageBox.Warning)
+                msgBox.setText("Please select the Checksum file...")
+                msgBox.exec()
+                return
+            
+            msgBox = QMessageBox()
+            msgBox.setWindowTitle(" ")
+            verify = instance.fileverify(src, fname, self.MD5ChecksumPath)
+            if verify:
+                msgBox.setText("File is Valid. Verified!!")
+            else:
+                msgBox.setText("Invalid Checksum or Bad File!!")
+            msgBox.exec()
+
+    def _MD5File(self):
+        options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getOpenFileName(self,
+                "Open File", "",
+                "All Files (*)", options = options)
+        if fileName:
+            self.MD5FilePath = fileName
+            self.labelPlainFile.setText(fileName)
+            self.labelPlainFile.setWordWrap(True)
+
+
+    def _MD5Checksum(self):
+        options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getOpenFileName(self,
+                "Open Checksum", "",
+                "Text Files (.txt)", options = options)
+        if fileName:
+            self.MD5ChecksumPath = fileName
+            self.labelChecksumFile.setText(fileName)
+            self.labelChecksumFile.setWordWrap(True)
     
     # Create function for RSA
     def _RSAEncrypt(self):

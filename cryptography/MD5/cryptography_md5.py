@@ -245,7 +245,7 @@ class CryptographyMD5():
         return temp
 
     def filedigest(self, src:str, fname:str):
-
+        os.umask(0)
         hash = hashlib.md5()
         # File to be hashed
         file = os.path.join(src, fname)
@@ -257,11 +257,33 @@ class CryptographyMD5():
                 chunk = f.read(CHUNK_SIZE)
         
         # Checksum file
-        checksum = os.path.join(src, fname[:fname.rindex(".")]
+        folder = src + "/checksum"
+        if not os.path.exists(folder):
+            os.makedirs(folder, mode = 0o777)
+
+        checksum = os.path.join(folder + "/", fname[:fname.rindex(".")]
                 + "_" + "checksum.txt")
         with open(checksum, "w") as f:
             f.write(hash.hexdigest() )
-            
+
+    def fileverify(self, src:str, fname:str, checkSum:str):
+        import filecmp
+        hash = hashlib.md5()
+        file = os.path.join(src, fname)
+        with open(file, "rb") as f:
+            chunk = f.read(CHUNK_SIZE)
+            while chunk:
+                hash.update(chunk)
+                chunk = f.read(CHUNK_SIZE)
+
+        folder = checkSum[:checkSum.rindex("/") + 1]
+        checksum = os.path.join(folder, "Verifying_Checksum.txt")
+        with open(checksum, "w") as f:
+            f.write(hash.hexdigest() )
+        
+        result = filecmp.cmp(checkSum, checksum)
+        os.remove(checksum)
+        return result
 
 if __name__ =='__main__':
 
