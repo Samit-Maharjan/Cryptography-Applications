@@ -357,11 +357,13 @@ class MyTableWidget(QWidget):
         
         self.buttonDESEncrypt.clicked.connect(lambda : self._DES(1) )
         self.buttonDESDecrypt.clicked.connect(lambda : self._DES(0) )
+        self.buttonInput.clicked.connect(self._DESFileChoose)
         self.buttonDESEncryptFile.clicked.connect(lambda : self._DESFile(1) )
         self.buttonDESDecryptFile.clicked.connect(lambda : self._DESFile(0) )
         self.buttonClear.clicked.connect(lambda:
-                self.textDESPlain.setPlainText("") or
-                self.textDESCypher.setPlainText("") )
+                self.textDESPlain.setPlainText("")  or
+                self.textDESCypher.setPlainText("") or
+                self.labelInputFile.setText("") )
 
         # Create MD5 tab
         
@@ -815,7 +817,7 @@ class MyTableWidget(QWidget):
         
     # Create functions for DES
     def _DES(self, encrypt):
-        if(encrypt == 1):
+        if encrypt == 1:
             text = self.textDESPlain.toPlainText()
             cypherText = self._DESEncrypt(text)
             self.textDESCypher.setPlainText(cypherText)
@@ -826,121 +828,73 @@ class MyTableWidget(QWidget):
             self.textDESPlain.setPlainText(plainText)
             
     def _DESFile(self, encrypt):
-        return
+        if encrypt == 1:
+            self._DESEncryptFile()
+        else:
+            self._DESDecryptFile()
 
     def _DESEncrypt(self, plainText):
         mode = self.comboDESMode.currentIndex()
         key = self.textDESKey.toPlainText()
         
-        if plainText == "": # file encrypt
-            if self.filePath:
-                start = time.time()
-                outputPath = os.path.dirname(self.filePath)
-                outputExpand = self.filePath.split(".")[-1]
-                outputPath = outputPath + "/encrypted" + "." + outputExpand
-                print(outputPath)
-                encryptor = file_encryptor.FileEncryptor()
-                encryptor.register_plain_source(self.filePath)
-                encryptor.register_encrypt_source(outputPath)
-                encryptor.set_key(key)
-                encryptor.start_encrypt()
-                end = time.time()
-                msgBox = QMessageBox()
-                msgText= "Encrypt complete with " + "{:3f}".format((end-start))+"s"
-                msgBox.setText(msgText)
-                msgBox.setWindowTitle("Success")
-                msgBox.exec()
-            else:# No input
-                msgBox = QMessageBox()
-                msgBox.setText("No input for encrypt")
-                msgBox.exec()
-        else:
-            instance = cryptography_des.CryptographyDES()
-            instance.set_work_mode(mode)
-            instance.set_plain_text(plainText)
-            
-            if mode == 0: # ECB
+        instance = cryptography_des.CryptographyDES()
+        instance.set_work_mode(mode)
+        instance.set_plain_text(plainText)
+        
+        if mode == 0: # ECB
+            instance.set_key(key)
+            instance.encrypt()
+        elif mode == 1: # CBC
+            instance.set_key(key)
+            vec = instance.get_init_vector()
+            instance.encrypt()
+            self.textDESInitVec.setPlainText(vec)
+        elif mode == 2: # 3 DES
+            keys = self.textDESKey.toPlainText().split(" ")
+            for key in keys:
                 instance.set_key(key)
-                instance.encrypt()
-            elif mode == 1: # CBC
-                instance.set_key(key)
-                vec = instance.get_init_vector()
-                instance.encrypt()
-                self.textDESInitVec.setPlainText(vec)
-            elif mode == 2: # 3 DES
-                keys = self.textDESKey.toPlainText().split(" ")
-                for key in keys:
-                    instance.set_key(key)
-                instance.encrypt()
-            
-            cypherText = instance.get_cipher_text()  
-            return cypherText
+            instance.encrypt()
+        
+        cypherText = instance.get_cipher_text()  
+        return cypherText
             
     def _DESDecrypt(self, cypherText):
         mode = self.comboDESMode.currentIndex()
         key = self.textDESKey.toPlainText()
-        cypherText = self.textDESCypher.toPlainText()
 
-        if cypherText == "": #file encrypt
-            if self.filePath:
-                start = time.time()
-                outputPath = os.path.dirname(self.filePath)
-                outputExpand = self.filePath.split(".")[-1]
-                outputPath = outputPath + "/decrypted" + "." + outputExpand
-                decryptor = file_encryptor.FileEncryptor()
-                decryptor.register_encrypt_source(self.filePath)
-                decryptor.register_plain_source(outputPath)
-                decryptor.set_key(key)
-                decryptor.start_decrypt()
-                end = time.time()
-                msgBox = QMessageBox()
-                msgText= "Decrypt complete with " + "{:3f}".format((end-start))+"s"
-                msgBox.setText(msgText)
-                msgBox.setWindowTitle("Success")
-                msgBox.exec()
-            else:# No input
-                msgBox = QMessageBox()
-                msgBox.setText("No input for decrypt")
-                msgBox.exec()
-        else:
-            instance = cryptography_des.CryptographyDES()
-            instance.set_work_mode(mode)
-            instance.set_cipher_text(cypherText)
-            
-            if mode == 0: # ECB
-                instance.set_key(key)
-                instance.decrypt()
-            elif mode == 1: # CBC
-                instance.set_key(key)
-                vec = self.textDESInitVec.toPlainText()
-                instance.set_init_vector(vec)
-                instance.decrypt()
-            elif mode == 2: # 3 DES
-                keys = self.textDESKey.toPlainText().split(" ")
-                for key in keys:
-                    instance.set_key(key)
-                instance.decrypt()
-            
-            plainText = instance.get_plain_text()  
-            self.textDESPlain.setPlainText(plainText)
+        instance = cryptography_des.CryptographyDES()
+        instance.set_work_mode(mode)
+        instance.set_cipher_text(cypherText)
+        
+        if mode == 0: # ECB
+            instance.set_key(key)
+            instance.decrypt()
 
-    def _DESEncryptFile(self):
+        elif mode == 1: # CBC
+            instance.set_key(key)
+            vec = self.textDESInitVec.toPlainText()
+            instance.set_init_vector(vec)
+            instance.decrypt()
+
+        elif mode == 2: # 3 DES
+            keys = self.textDESKey.toPlainText().split(" ")
+            for key in keys:
+                instance.set_key(key)
+            instance.decrypt()
+        
+        plainText = instance.get_plain_text()  
+        return plainText
+
+    def _DESFileChoose(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self,
-                      "Choose a file to encrypt", "",
-                      "Text Files (*.txt);;Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.avi)", options=options)
+                      "Open File", "",
+                      "All Files (*)", options = options)
         if fileName:
             self.filePath = fileName
-            self.labelDESPlainFile.setText(fileName)
-    
-    def _DESDecryptFile(self):
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(self,
-                      "Choose a file to decrypt", "",
-                      "Text Files (*.txt);;Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.avi)", options=options)
-        if fileName:
-            self.filePath = fileName
-            self.labelDESCypherFile.setText(fileName)
+            fileIndex = fileName.rindex("/")
+            parentIndex = fileName[:fileIndex].rindex("/")
+            self.labelInputFile.setText("..." + fileName[parentIndex : ])
 
     # Create function for MD5 
     def _MD5Hash(self):
