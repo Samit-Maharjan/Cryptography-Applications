@@ -300,55 +300,52 @@ class MyTableWidget(QWidget):
         
 
         #Application
-        self.layoutApplication = QHBoxLayout()
-        self.layoutApplication.setSpacing(50)
-        self.layoutApplication.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
-        self.layoutApplication.addWidget(QLabel("INPUT:", self) )
+        self.layoutInput = QGridLayout()
+        self.layoutInput.setSpacing(20)
+        self.layoutInput.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
+        self.layoutInput.addWidget(QLabel("INPUT:", self) , 0, 0, Qt.AlignCenter)
+        self.layoutInput.addWidget(self.labelInputFile, 1, 0, Qt.AlignCenter)
+        self.layoutInput.addWidget(self.buttonInput, 2, 0, Qt.AlignCenter)
+        self.buttonInput.setFixedWidth(160)
+
+        self.layoutDESButtonFile = QVBoxLayout()
 
         self.layoutEncOrDec = QHBoxLayout()
         self.layoutEncOrDec.setSpacing(10)
         self.layoutEncOrDec.addWidget(self.comboDES)
         self.layoutEncOrDec.addWidget(QLabel("File", self) )
         self.layoutEncOrDec.setAlignment(Qt.AlignCenter)
-        
-        self.layoutApplication.addLayout(self.layoutEncOrDec)
-        self.layoutApplication.addWidget(QLabel("OUTPUT:", self) )
-        self.layoutApplication.setContentsMargins(LEFT, 0, RIGHT, 0)
-            
-        self.layoutFileInput = QVBoxLayout()
-        self.layoutFileInput.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
-        self.layoutFileInput.addWidget(self.labelInputFile)
-        self.layoutFileInput.addWidget(self.buttonInput)
 
-        self.layoutFileButton = QVBoxLayout()
-        self.layoutFileButton.setSpacing(20)
-        self.layoutFileButton.setContentsMargins(LEFT, TOP * 2, RIGHT, BOTTOM)
-        self.layoutFileButton.setAlignment(Qt.AlignCenter)
+        self.layoutDESButtonFile.addLayout(self.layoutEncOrDec)
+        self.layoutDESButtonFile.setSpacing(20)
 
+        self.layoutDESButtonFile.addStretch()
         self.buttonDESEncryptFile.setFixedWidth(160)
-        self.layoutFileButton.addWidget(self.buttonDESEncryptFile)
+        self.layoutDESButtonFile.addWidget(self.buttonDESEncryptFile)
         self.buttonDESDecryptFile.setFixedWidth(160)
-        self.layoutFileButton.addWidget(self.buttonDESDecryptFile)
+        self.layoutDESButtonFile.addWidget(self.buttonDESDecryptFile)
+        self.layoutDESButtonFile.addStretch()
+        
+        self.layoutOutput = QGridLayout()
+        self.layoutOutput.setSpacing(20)
+        self.layoutOutput.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
 
-        self.layoutFileButton.addWidget(self.labelStatus)
+        self.layoutOutput.addWidget(QLabel("OUTPUT:", self), 0, 0, Qt.AlignCenter)
+        self.layoutOutput.addWidget(self.labelOutputFile, 1, 0, Qt.AlignCenter)
+        self.layoutOutput.addWidget(self.labelStatus, 2, 0)
         
         #By default in Encrypt Mode
         self.buttonDESDecryptFile.setEnabled(False)
 
-        self.layoutFileOutput = QVBoxLayout()
-        self.layoutFileOutput.setContentsMargins(LEFT, TOP, RIGHT, BOTTOM)
-        self.layoutFileOutput.addWidget(self.labelOutputFile)
-        
         self.layoutApplicationDES = QHBoxLayout()
-        self.layoutApplicationDES.addLayout(self.layoutFileInput)
-        self.layoutApplicationDES.addLayout(self.layoutFileButton)
-        self.layoutApplicationDES.addLayout(self.layoutFileOutput)        
+        self.layoutApplicationDES.addLayout(self.layoutInput)
+        self.layoutApplicationDES.addLayout(self.layoutDESButtonFile)
+        self.layoutApplicationDES.addLayout(self.layoutOutput)        
 
         self.layoutDES = QVBoxLayout()
         self.layoutDES.addLayout(self.layoutDESKey)
         self.layoutDES.addLayout(self.layoutDESText)
         self.layoutDES.addLayout(self.layoutSeparator)
-        self.layoutDES.addLayout(self.layoutApplication)
         self.layoutDES.addLayout(self.layoutApplicationDES)
         
         self.tabDES.setLayout(self.layoutDES)
@@ -360,10 +357,10 @@ class MyTableWidget(QWidget):
         self.buttonInput.clicked.connect(self._DESFileChoose)
         self.buttonDESEncryptFile.clicked.connect(lambda : self._DESFile(1) )
         self.buttonDESDecryptFile.clicked.connect(lambda : self._DESFile(0) )
-        self.buttonClear.clicked.connect(lambda:
-                self.textDESPlain.setPlainText("")  or
-                self.textDESCypher.setPlainText("") or
-                self.labelInputFile.setText("") )
+        self.buttonClear.clicked.connect(self._clearDES)
+
+        self.comboDES.currentIndexChanged[int].connect(self._DESChange)
+        self.labelOutputFile.mousePressEvent = self._openFile
 
         # Create MD5 tab
         
@@ -816,6 +813,27 @@ class MyTableWidget(QWidget):
         return plainText
         
     # Create functions for DES
+    def _DESChange(self, index):
+        if index == 0:
+            self.buttonDESEncryptFile.setEnabled(True)
+            self.buttonDESDecryptFile.setEnabled(False)
+        else:
+            self.buttonDESDecryptFile.setEnabled(True)
+            self.buttonDESEncryptFile.setEnabled(False)
+
+    def _openFile(self, *args, **kwargs):
+        import subprocess
+        opener = "xdg-open"
+        if os.path.exists(self.filePath):
+            subprocess.call([opener, self.filePath])
+
+    def _clearDES(self):
+        self.textDESPlain.setPlainText("")
+        self.textDESCypher.setPlainText("")
+        self.labelInputFile.setText("")
+        self.labelOutputFile.setText("")
+        self.filePath = ""
+
     def _DES(self, encrypt):
         if encrypt == 1:
             text = self.textDESPlain.toPlainText()
@@ -829,9 +847,78 @@ class MyTableWidget(QWidget):
             
     def _DESFile(self, encrypt):
         if encrypt == 1:
-            self._DESEncryptFile()
+            if self.filePath:
+                outputPath = os.path.dirname(self.filePath)
+                filePathIndex = outputPath.rindex("/")
+
+                folder = os.path.join(outputPath, "encrypted")
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+
+                outputExpand = self.filePath.split(".")[-1]
+                outputPath = folder + "/encrypted" + "." + outputExpand
+
+                encryptor = file_encryptor.FileEncryptor()
+                encryptor.register_plain_source(self.filePath)
+                encryptor.register_encrypt_source(outputPath)
+
+                key = self.textDESKey.toPlainText()
+                encryptor.set_key(key)
+                encryptor.start_encrypt()
+
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Information)
+                msgBox.setWindowTitle("Success")
+                msgBox.setText("File Encrypted Successfully!!")
+                msgBox.exec()
+
+                self.labelOutputFile.setText(outputPath)
+                self.labelOutputFile.setWordWrap(True)
+                self.filePath = outputPath
+
+            else:
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Warning)
+                msgBox.setWindowTitle("Encryption Error")
+                msgBox.setText("Choose a File Before Encryption!!")
+                msgBox.exec()
         else:
-            self._DESDecryptFile()
+            if self.filePath:
+                outputPath = os.path.dirname(self.filePath)
+                filePathIndex = outputPath.rindex("/")
+
+                folder = os.path.join(outputPath[ : filePathIndex + 1], "decrypted")
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+
+                outputExpand = self.filePath.split(".")[-1]
+                outputPath = folder + "/decrypted" + "." + outputExpand
+                
+                encryptor = file_encryptor.FileEncryptor()
+                encryptor.register_encrypt_source(self.filePath)
+                encryptor.register_plain_source(outputPath)
+            
+                key = self.textDESKey.toPlainText()
+                encryptor.set_key(key)
+                encryptor.start_decrypt()
+
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Information)
+                msgBox.setWindowTitle("Success")
+                msgBox.setText("File Decrypted Successfully!!")
+                msgBox.exec()
+                
+                self.filePath = outputPath
+                self.labelOutputFile.setText(outputPath)
+                self.labelOutputFile.setWordWrap(True)
+
+    
+            else:
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Warning)
+                msgBox.setWindowTitle("Decryption Error")
+                msgBox.setText("Choose a File Before Decryption!!")
+                msgBox.exec()
 
     def _DESEncrypt(self, plainText):
         mode = self.comboDESMode.currentIndex()
@@ -892,9 +979,8 @@ class MyTableWidget(QWidget):
                       "All Files (*)", options = options)
         if fileName:
             self.filePath = fileName
-            fileIndex = fileName.rindex("/")
-            parentIndex = fileName[:fileIndex].rindex("/")
-            self.labelInputFile.setText("..." + fileName[parentIndex : ])
+            self.labelInputFile.setText(fileName)
+            self.labelInputFile.setWordWrap(True)
 
     # Create function for MD5 
     def _MD5Hash(self):
