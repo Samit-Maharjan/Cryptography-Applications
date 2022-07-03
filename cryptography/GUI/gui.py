@@ -1088,13 +1088,22 @@ class MyTableWidget(QWidget):
         self.textRSAPlain.setPlainText(plainText)
 
     def _RSAKeyPair(self):
-        return
+        pub, priv = rsa.gen_SSHKey()
+        self.textRSAPuKey.setPlainText(pub)
+        self.textRSAPkKey.setPlainText(priv)
         
     def _copyClipboard(self):
-        return
+        rsa.get_SSHKey()
 
     def _connectGithub(self):
-        return
+        import subprocess
+        result = subprocess.getoutput('ssh -T git@github.com')
+        success = "successfully authenticated"
+        if success in result:
+            msgBox = QMessageBox()
+            msgBox.setWindowTitle(" ")
+            msgBox.setText("Successfully Connected!!")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

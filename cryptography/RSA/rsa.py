@@ -1,14 +1,19 @@
 import random
 import os
+import subprocess
+import argparse
+import pyperclip
 
 private, public, n = 0, 0, 0
 ciphertext = []
+
+CUR_USER = os.getlogin()
+PRIV_SSH_DIR = "/home/%s/.ssh/" % (CUR_USER)
 
 def _gcd(a, b):
     while b != 0:
         a, b = b, a % b
     return a
-
 
 def _extended_gcd(a, b):
     lastRem, rem = abs(a), abs(b)
@@ -93,6 +98,38 @@ def decrypt(cipher):
     plain = [chr(int(char2)) for char2 in aux]
     return ''.join(plain)
 
+def gen_SSHKey():
+    os.chdir(PRIV_SSH_DIR)
+    if not "id_rsa" in os.listdir(PRIV_SSH_DIR):
+        subprocess.call('ssh-keygen -t rsa', shell = True)
+
+    file = PRIV_SSH_DIR + "id_rsa.pub"
+    if not os.path.exists(file):
+        return
+    lines = []
+    with open(file) as f:
+        lines = f.readlines()
+    pubKey = ''.join(x for x in lines)
+    
+    file = PRIV_SSH_DIR + "id_rsa"
+    if not os.path.exists(file):
+        return
+    lines = []
+    with open(file) as f:
+        lines = f.readlines()
+    priKey = ''.join(x for x in lines[1:-1])
+    return pubKey, priKey
+
+
+def get_SSHKey():
+    file = PRIV_SSH_DIR + "id_rsa.pub"
+    if not os.path.exists(file):
+        return
+    lines = []
+    with open(file) as f:
+        lines = f.readlines()
+    pubKey = ''.join(x for x in lines)
+    pyperclip.copy(pubKey)
 
 if __name__ == '__main__':
     p = int(input() )
