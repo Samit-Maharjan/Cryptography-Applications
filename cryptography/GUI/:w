@@ -1,7 +1,7 @@
 from ..DES import cryptography_des
 from ..DES import file_encryptor
 from ..MD5 import cryptography_md5
-from ..RSA import rsa
+from ..RSA import cryptography_rsa
 from ..AES import aes
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QComboBox, QApplication, QTextEdit, QFileDialog, QMainWindow, QApplication, QVBoxLayout, QTabWidget, QHBoxLayout, QSpacerItem, QMessageBox, QGridLayout, QFrame, QSizePolicy, QFormLayout, QRadioButton
 from PyQt5.QtCore import pyqtSlot, Qt
@@ -623,6 +623,7 @@ class MyTableWidget(QWidget):
         self.textRSAPkKey.setTextInteractionFlags(Qt.NoTextInteraction)
         self.textRSAPuKey.setTextInteractionFlags(Qt.NoTextInteraction)
 
+
         self.layoutConnect = QVBoxLayout()
         self.layoutConnect.setSpacing(20)
         self.layoutConnect.setContentsMargins(LEFT * 3, TOP * 7, RIGHT * 3, BOTTOM)
@@ -657,11 +658,7 @@ class MyTableWidget(QWidget):
         self.buttonGenerateKey.clicked.connect(self._Keygen)
         self.buttonRSAEncrypt.clicked.connect(self._RSAEncrypt)
         self.buttonRSADecrypt.clicked.connect(self._RSADecrypt) 
-        
-        self.buttonGenerateRSAKey.clicked.connect(self._RSAKeyPair)
-        self.buttonCopyKey.clicked.connect(self._copyClipboard)
-        self.buttonConnect.clicked.connect(self._connectGithub)
-
+            
         # Add tabs to widget        
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
@@ -673,15 +670,11 @@ class MyTableWidget(QWidget):
         if(self.radioButton.isChecked() ):
             MODE = self.radioButton.mode
             if MODE == "Automatic":
-                self._clearRSA()
                 self.textRSAp.setTextInteractionFlags(Qt.NoTextInteraction)
                 self.textRSAq.setTextInteractionFlags(Qt.NoTextInteraction)
-                self.buttonGenerateKey.setEnabled(True)
             else:
-                self._clearRSA()
                 self.textRSAp.setTextInteractionFlags(Qt.TextEditorInteraction)
                 self.textRSAq.setTextInteractionFlags(Qt.TextEditorInteraction)
-                self.buttonGenerateKey.setEnabled(False)
 
     # Create functions for AES
     def _AESApp(self, server):
@@ -1062,39 +1055,75 @@ class MyTableWidget(QWidget):
             self.labelChecksumFile.setWordWrap(True)
     
     # Create function for RSA
-    def _clearRSA(self):
-        self.textRSAp.setPlainText("")
-        self.textRSAq.setPlainText("")
-        self.textRSAPrivateKey.setPlainText("")
-        self.textRSAPublicKey.setPlainText("")
-        self.textRSAPlain.setPlainText("")
-        self.textRSACypher.setPlainText("")
-
     def _Keygen(self):
-        p, q = rsa.generate_key_pair(0, 0, 1)
-        self.textRSAp.setPlainText(str(p) )
-        self.textRSAq.setPlainText(str(q) )
-        self.textRSAPublicKey.setPlainText(str(rsa.public) )
-        self.textRSAPrivateKey.setPlainText(str(rsa.private) )
+        P = self.labelRSAp.toPlainText()
+        Q = self.labelRSAq.toPlainText()
+        p, q = 0, 0
+        if P == "" or Q == "":
+            p, q = self.generate_key_pair(0, 0, 1)
+        else:
+            p, q = int(P), int(Q)
+        self.labelRSAp.setPlainText(p)
+        self.labelRSAq.setPlainText(q)
             
     def _RSAEncrypt(self):
         plainText = self.textRSAPlain.toPlainText()
-        cypherText = rsa.encrypt(plainText)
-        self.textRSACypher.setPlainText(''.join(map(lambda x: chr(x % 256), cypherText) ) )
-       
+        keyLength = self.textRSAKeyLength.toPlainText()
+        try:
+            keyLength = int(keyLength)
+        except ValueError:
+            msgBox = QMessageBox()
+            msgText = "Invalid Key length!"
+            msgBox.setText(msgText)
+            msgBox.setWindowTitle("Error")
+            msgBox.exec()
+            return
+        if keyLength < 512:
+            msgBox = QMessageBox()
+            msgText = "Does not accept key length to be less than 512!"
+            msgBox.setText(msgText)
+            msgBox.setWindowTitle("Error")
+            msgBox.exec()
+            return
+
+        instance = cryptography_rsa.CryptographyRSA(key_length=keyLength)
+        instance.set_plain_text(plainText)
+        instance.set_key(key='initial')
+        
+        keyChain = instance.get_key()
+        privateKey = keyChain["private_key"]
+        eulerTotient = keyChain["euler_totient"]
+        
+        instance.encrypt()
+        
+        cypherText = instance.get_cipher_text()
+        
+        self.textRSACypher.setPlainText(cypherText)
+        self.textRSAPrivateKey.setPlainText(str(privateKey))
+        self.textRSAEulerTotient.setPlainText(str(eulerTotient))
+        
     def _RSADecrypt(self):
         cypherText = self.textRSACypher.toPlainText()
-        plainText = rsa.decrypt(cypherText)
-        self.textRSAPlain.setPlainText(plainText)
 
-    def _RSAKeyPair(self):
-        return
+        keyLength = self.textRSAKeyLength.toPlainText()
+        keyLength = int(keyLength)
+
+        privateKey = self.textRSAPrivateKey.toPlainText()
+        privateKey = int(privateKey)
+
+        eulerTotient = self.textRSAEulerTotient.toPlainText()
+        eulerTotient = int(eulerTotient)
         
-    def _copyClipboard(self):
-        return
-
-    def _connectGithub(self):
-        return
+        instance = cryptography_rsa.CryptographyRSA(key_length=keyLength)
+        instance.set_key(key='private_key',
+                         private_key=privateKey,
+                         totient=eulerTotient)
+        instance.set_cipher_text(cypherText)
+        
+        instance.decrypt()
+        
+        plainText = instance.get_plain_text_as_string()
+        self.textRSAPlain.setPlainText(plainText)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
