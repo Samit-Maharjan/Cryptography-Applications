@@ -521,6 +521,7 @@ class MyTableWidget(QWidget):
         self.buttonGenerateRSAKey = QPushButton("Generate Key", self)
         self.buttonCopyKey        = QPushButton("Copy to Clipboard", self)
         self.buttonConnect        = QPushButton("Connect Github", self)
+        self.buttonRSAClear       = QPushButton("Clear", self)
         
         self.layoutRSAButton = QVBoxLayout()
         self.layoutRSAButton.setSpacing(20)
@@ -528,6 +529,7 @@ class MyTableWidget(QWidget):
         self.layoutRSAButton.addStretch()
         self.layoutRSAButton.addWidget(self.buttonRSAEncrypt)
         self.layoutRSAButton.addWidget(self.buttonRSADecrypt)
+        self.layoutRSAButton.addWidget(self.buttonRSAClear)
         self.layoutRSAButton.addStretch()
         
         self.layoutRSAMode = QHBoxLayout()
@@ -661,6 +663,7 @@ class MyTableWidget(QWidget):
         self.buttonGenerateRSAKey.clicked.connect(self._RSAKeyPair)
         self.buttonCopyKey.clicked.connect(self._copyClipboard)
         self.buttonConnect.clicked.connect(self._connectGithub)
+        self.buttonRSAClear.clicked.connect(self._clearRSA)
 
         # Add tabs to widget        
         self.layout.addWidget(self.tabs)
@@ -1102,8 +1105,9 @@ class MyTableWidget(QWidget):
         if success in result:
             msgBox = QMessageBox()
             msgBox.setWindowTitle(" ")
-            msgBox.setText("Successfully Connected!!")
-
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setText("Successfully connected Github account!!")
+            msgBox.exec()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
