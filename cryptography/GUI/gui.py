@@ -679,12 +679,10 @@ class MyTableWidget(QWidget):
                 self._clearRSA()
                 self.textRSAp.setTextInteractionFlags(Qt.NoTextInteraction)
                 self.textRSAq.setTextInteractionFlags(Qt.NoTextInteraction)
-                self.buttonGenerateKey.setEnabled(True)
             else:
                 self._clearRSA()
                 self.textRSAp.setTextInteractionFlags(Qt.TextEditorInteraction)
                 self.textRSAq.setTextInteractionFlags(Qt.TextEditorInteraction)
-                self.buttonGenerateKey.setEnabled(False)
 
     # Create functions for AES
     def _AESApp(self, server):
@@ -987,7 +985,7 @@ class MyTableWidget(QWidget):
         self.labelPlainFile.setText("")
         self.MD5ChecksumPath = ""
         self.MD5FilePath = ""
-
+ 
     def _MD5Change(self, index):
         if index == 0:
             self.buttonGenerate.setEnabled(True)
@@ -1074,11 +1072,19 @@ class MyTableWidget(QWidget):
         self.textRSACypher.setPlainText("")
 
     def _Keygen(self):
-        p, q = rsa.generate_key_pair(0, 0, 1)
-        self.textRSAp.setPlainText(str(p) )
-        self.textRSAq.setPlainText(str(q) )
-        self.textRSAPublicKey.setPlainText(str(rsa.public) )
-        self.textRSAPrivateKey.setPlainText(str(rsa.private) )
+        if self.radioButton.mode == "Manual":
+            p = int(self.textRSAp.toPlainText())
+            q = int(self.textRSAq.toPlainText())
+            p, q = rsa.generate_key_pair(p, q, 0)
+            self.textRSAPublicKey.setPlainText(str(rsa.public) )
+            self.textRSAPrivateKey.setPlainText(str(rsa.private) )
+
+        else:
+            p, q = rsa.generate_key_pair(0, 0, 1)
+            self.textRSAp.setPlainText(str(p) )
+            self.textRSAq.setPlainText(str(q) )
+            self.textRSAPublicKey.setPlainText(str(rsa.public) )
+            self.textRSAPrivateKey.setPlainText(str(rsa.private) )
             
     def _RSAEncrypt(self):
         plainText = self.textRSAPlain.toPlainText()
