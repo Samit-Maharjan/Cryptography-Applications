@@ -535,9 +535,8 @@ class MyTableWidget(QWidget):
         self.layoutRSAMode = QHBoxLayout()
         self.layoutRSAMode.addWidget(QLabel("Mode:", self))
         self.radioButton = QRadioButton("Automatic")
-        self.radioButton.setChecked(True)
-        self.radioButton.toggled.connect(self.onClicked)
         self.radioButton.mode = "Automatic"
+        self.radioButton.toggled.connect(self.onClicked)
         self.layoutRSAMode.addWidget(self.radioButton)
 
         self.radioButton = QRadioButton("Manual")
